@@ -4,6 +4,7 @@ import { StoryPanel } from './components/StoryPanel';
 import { WorkspacePanel } from './components/WorkspacePanel';
 import { initDb, executeQuery } from './lib/db';
 import levelsData from './data/levels.json';
+import { Menu } from 'lucide-react';
 
 export type Level = typeof levelsData[0];
 
@@ -12,6 +13,7 @@ function App() {
   const [dbReady, setDbReady] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     // Initialize the SQLite database engine
@@ -62,9 +64,20 @@ function App() {
         levels={levelsData} 
         currentLevel={currentLevel} 
         onSelectLevel={handleLevelSelect} 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="main-content">
+      <main className="main-content" style={{ position: 'relative' }}>
+        {!isSidebarOpen && (
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="floating-menu-btn"
+            title="Abrir menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <StoryPanel level={currentLevel} />
         <WorkspacePanel 
           level={currentLevel}

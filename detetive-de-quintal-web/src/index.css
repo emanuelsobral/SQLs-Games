@@ -44,9 +44,19 @@ body {
   background-color: var(--sidebar-bg);
   color: var(--sidebar-text);
   border-right: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.sidebar.closed {
+  width: 0;
+  border: none;
+  opacity: 0;
+  padding: 0;
 }
 
 .sidebar-header {
@@ -66,13 +76,49 @@ body {
   margin-top: 1rem;
 }
 
-.season-title {
-  padding: 0.5rem 1.5rem;
-  font-size: 0.875rem;
+.season-title-btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: bold;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.season-title-btn:hover {
+  color: white;
+  background-color: var(--sidebar-hover);
+}
+
+.floating-menu-btn {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  opacity: 0.4;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.floating-menu-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .level-button {
@@ -193,6 +239,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--panel-bg);
+  border-top: 4px solid var(--accent);
 }
 
 .editor-section {
@@ -233,7 +280,7 @@ body {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -337,7 +384,7 @@ body {
   border: 1px solid var(--border);
   color: var(--text-main);
   padding: 0.75rem 1rem;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   font-size: 1rem;
   font-family: var(--font-sans);
   outline: none;
@@ -348,11 +395,11 @@ body {
 }
 
 .reveal-button {
-  background-color: var(--success);
+  background-color: var(--accent);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s;
@@ -360,7 +407,7 @@ body {
 }
 
 .reveal-button:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: var(--accent-hover);
 }
 
 .reveal-button.secondary {

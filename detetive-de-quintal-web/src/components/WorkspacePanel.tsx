@@ -6,7 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { keymap } from '@codemirror/view';
 
 interface WorkspacePanelProps {
@@ -150,7 +149,6 @@ export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspaceP
           <CodeMirror
             value={query}
             height="100%"
-            theme={oneDark}
             extensions={[
               sql({ dialect: SQLite, schema: buildSqlSchema() }),
               keymap.of([{
