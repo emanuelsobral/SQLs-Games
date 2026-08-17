@@ -80,7 +80,7 @@ function App() {
           </button>
         )}
         
-        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100%' }}>
+        <PanelGroup orientation="horizontal" style={{ width: '100%', height: '100%' }}>
           <Panel defaultSize={40} minSize={20}>
             <StoryPanel level={currentLevel} />
           </Panel>
