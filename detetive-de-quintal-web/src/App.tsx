@@ -5,6 +5,7 @@ import { WorkspacePanel } from './components/WorkspacePanel';
 import { initDb, executeQuery } from './lib/db';
 import levelsData from './data/levels.json';
 import { Menu } from 'lucide-react';
+import { Group as PanelGroup, Panel, Separator as PanelResizeHandle } from 'react-resizable-panels';
 
 export type Level = typeof levelsData[0];
 
@@ -68,7 +69,7 @@ function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className="main-content" style={{ position: 'relative' }}>
+      <main className="main-content" style={{ position: 'relative', display: 'flex', width: '100%', height: '100%' }}>
         {!isSidebarOpen && (
           <button 
             onClick={() => setIsSidebarOpen(true)}
@@ -78,13 +79,23 @@ function App() {
             <Menu size={20} />
           </button>
         )}
-        <StoryPanel level={currentLevel} />
-        <WorkspacePanel 
-          level={currentLevel}
-          onRunQuery={handleRunQuery} 
-          results={results} 
-          error={error} 
-        />
+        
+        <PanelGroup direction="horizontal" style={{ width: '100%', height: '100%' }}>
+          <Panel defaultSize={40} minSize={20}>
+            <StoryPanel level={currentLevel} />
+          </Panel>
+          
+          <PanelResizeHandle className="resize-handle" />
+          
+          <Panel defaultSize={60} minSize={30}>
+            <WorkspacePanel 
+              level={currentLevel}
+              onRunQuery={handleRunQuery} 
+              results={results} 
+              error={error} 
+            />
+          </Panel>
+        </PanelGroup>
       </main>
     </div>
   );
