@@ -65,7 +65,7 @@ export function Sidebar({ levels, currentLevel, onSelectLevel, isOpen, onClose }
                       className={`level-button ${currentLevel?.id === level.id ? 'active' : ''}`}
                       onClick={() => onSelectLevel(level)}
                     >
-                      <span className="truncate">{level.title}</span>
+                      <span>{level.title}</span>
                     </button>
                   ))}
                 </div>
