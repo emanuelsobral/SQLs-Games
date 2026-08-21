@@ -41,6 +41,7 @@ body {
 /* Sidebar */
 .sidebar {
   width: 300px;
+  flex-shrink: 0;
   background-color: var(--sidebar-bg);
   color: var(--sidebar-text);
   border-right: 1px solid var(--border);

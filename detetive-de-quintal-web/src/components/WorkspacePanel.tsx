@@ -7,19 +7,24 @@ import remarkGfm from 'remark-gfm';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql, SQLite } from '@codemirror/lang-sql';
 import { keymap } from '@codemirror/view';
+import { saveUserAnswer } from '../lib/storage';
+import type { UserProgress } from '../lib/storage';
 
 interface WorkspacePanelProps {
   level: Level | null;
   onRunQuery: (query: string) => void;
   results: QueryExecResult[] | null;
   error: string | null;
+  currentUser?: UserProgress | null;
+  onUserUpdate?: () => void;
 }
 
-export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspacePanelProps) {
+export function WorkspacePanel({ level, onRunQuery, results, error, currentUser, onUserUpdate }: WorkspacePanelProps) {
   const [query, setQuery] = useState('');
   const [userAnswer, setUserAnswer] = useState('');
   const [showConclusion, setShowConclusion] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isPartial, setIsPartial] = useState(false);
 
   const buildSqlSchema = () => {
     if (!level || !level.setupScript) return {};
@@ -35,15 +40,26 @@ export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspaceP
     return schema;
   };
 
-  // Clear states when switching levels
+  // Clear or load states when switching levels
   useEffect(() => {
     if (!results && !error) {
       setQuery('');
-      setUserAnswer('');
-      setShowConclusion(false);
-      setIsCorrect(null);
+      
+      // Load saved answer if it exists for this level
+      if (currentUser && level && currentUser.answers[level.id]) {
+        const savedAnswer = currentUser.answers[level.id];
+        setUserAnswer(savedAnswer.answerText);
+        setIsCorrect(savedAnswer.score === 1);
+        setIsPartial(savedAnswer.isPartial);
+        setShowConclusion(true);
+      } else {
+        setUserAnswer('');
+        setShowConclusion(false);
+        setIsCorrect(null);
+        setIsPartial(false);
+      }
     }
-  }, [results, error]);
+  }, [results, error, currentUser, level]);
 
   const extractConclusion = (content: string) => {
     const match = content.match(/\*\*🔎 Conclusão:?\*\*([\s\S]*)/i);
@@ -63,20 +79,35 @@ export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspaceP
     const matches = [...targetText.matchAll(/\*\*([^*]+)\*\*/g)];
     const keywords = matches.map(m => m[1].toLowerCase().trim());
 
+    const userText = userAnswer.toLowerCase();
+    
+    let correct = false;
+    let partial = false;
+    let score = 0;
+
     if (keywords.length === 0) {
       // Fallback if no keywords found
-      setIsCorrect(true);
-      setShowConclusion(true);
-      return;
+      correct = true;
+      score = 1;
+    } else {
+      const matchedKeywords = keywords.filter(kw => userText.includes(kw));
+      if (matchedKeywords.length === keywords.length) {
+        correct = true;
+        score = 1;
+      } else if (matchedKeywords.length > 0 && matchedKeywords.length >= Math.ceil(keywords.length / 2)) {
+        correct = false;
+        partial = true;
+        score = 0.5;
+      }
     }
-
-    const userText = userAnswer.toLowerCase();
-    // User answer must contain all the required keywords
-    const correct = keywords.every(kw => userText.includes(kw));
     
     setIsCorrect(correct);
-    if (correct) {
-      setShowConclusion(true);
+    setIsPartial(partial);
+    setShowConclusion(true);
+
+    if (currentUser && level) {
+      saveUserAnswer(currentUser.id, level.id, userAnswer, score, partial);
+      if (onUserUpdate) onUserUpdate();
     }
   };
 
@@ -211,16 +242,26 @@ export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspaceP
                 Resolver Mistério
               </button>
               
-              {isCorrect === false && (
+              {isCorrect === false && !isPartial && (
                 <div style={{color: 'var(--error)', fontWeight: 'bold', marginLeft: '1rem'}}>
                   ❌ Errado! Tente novamente.
+                </div>
+              )}
+              {isPartial && (
+                <div style={{color: '#eab308', fontWeight: 'bold', marginLeft: '1rem'}}>
+                  ⚠️ Quase lá! Você acertou uma parte.
                 </div>
               )}
               
               <button 
                 onClick={() => {
                   setIsCorrect(false);
+                  setIsPartial(false);
                   setShowConclusion(true);
+                  if (currentUser && level) {
+                    saveUserAnswer(currentUser.id, level.id, userAnswer, 0, false);
+                    if (onUserUpdate) onUserUpdate();
+                  }
                 }}
                 className="reveal-button secondary"
                 style={{marginLeft: 'auto'}}
@@ -232,9 +273,13 @@ export function WorkspacePanel({ level, onRunQuery, results, error }: WorkspaceP
           ) : (
             <div className="conclusion-reveal">
               {isCorrect ? (
-                <div className="success-banner">🎉 Parabéns! Você desvendou o mistério!</div>
+                <div className="success-banner">🎉 Parabéns! Você desvendou o mistério! (+1 pt)</div>
+              ) : isPartial ? (
+                <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.2)', color: '#ca8a04', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', fontWeight: 'bold', border: '1px solid rgba(234, 179, 8, 0.5)' }}>
+                  ⚠️ Quase lá! Você ganhou pontuação parcial. (+0.5 pts) Veja a solução abaixo:
+                </div>
               ) : (
-                <div className="failure-banner">⚠️ Você desistiu ou errou. Veja a solução abaixo:</div>
+                <div className="failure-banner">⚠️ Você desistiu ou errou. (+0 pts) Veja a solução abaixo:</div>
               )}
               <div className="markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
